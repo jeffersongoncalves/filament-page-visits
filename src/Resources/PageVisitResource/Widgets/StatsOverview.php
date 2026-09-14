@@ -19,6 +19,7 @@ class StatsOverview extends BaseWidget
 
         $topCountry = PageVisit::query()
             ->whereNotNull('country')
+            ->where('is_bot', false)
             ->selectRaw('country, count(*) as aggregate')
             ->groupBy('country')
             ->orderByDesc('aggregate')
