@@ -20,6 +20,7 @@ class TopCountries extends TableWidget
         /** @var Builder<PageVisit> $query */
         $query = PageVisit::query()
             ->whereNotNull('country')
+            ->where('is_bot', false)
             ->select(['country', DB::raw('max(id) as id'), DB::raw('count(*) as visits_count')])
             ->groupBy('country')
             ->orderByDesc('visits_count')

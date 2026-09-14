@@ -95,6 +95,21 @@ it('renders the metrics widgets without polling', function () {
     livewire(TopAsn::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
 });
 
+it('excludes bot traffic from top country stats', function () {
+    PageVisitFactory::new()->create(['country' => 'Bot-only Land', 'is_bot' => true]);
+    PageVisitFactory::new()->create(['country' => 'Real Visitor Land', 'is_bot' => false]);
+
+    livewire(TopCountries::class)
+        ->assertSuccessful()
+        ->assertSee('Real Visitor Land')
+        ->assertDontSee('Bot-only Land');
+
+    livewire(StatsOverview::class)
+        ->assertSuccessful()
+        ->assertSee('Real Visitor Land')
+        ->assertDontSee('Bot-only Land');
+});
+
 it('renders every metrics widget by default', function () {
     $page = new MetricsPage;
 
