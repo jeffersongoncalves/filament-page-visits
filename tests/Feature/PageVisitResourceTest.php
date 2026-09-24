@@ -110,6 +110,24 @@ it('excludes bot traffic from top country stats', function () {
         ->assertDontSee('Bot-only Land');
 });
 
+it('buckets traffic trend and hourly charts in the database', function () {
+    $this->travelTo('2026-09-24 15:30:00');
+
+    foreach (['2026-09-24 15:10:00', '2026-09-24 15:20:00', '2026-09-24 09:00:00', '2026-09-23 16:45:00', '2026-09-11 00:00:00', '2026-09-10 23:59:59'] as $visitedAt) {
+        PageVisitFactory::new()->create(['visited_at' => $visitedAt]);
+    }
+
+    $getData = fn () => $this->getData();
+
+    $trend = $getData->call(new TrafficTrendChart)['datasets'][0]['data'];
+    $hourly = $getData->call(new HourlyChart)['datasets'][0]['data'];
+
+    // 14 days, 2026-09-11 .. 2026-09-24; 2026-09-10 is out of the window.
+    expect($trend)->toBe([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3])
+        // 2026-09-23 16:45 falls in the last 24h (hour 16); older visits are excluded.
+        ->and($hourly)->toBe(array_replace(array_fill(0, 24, 0), [9 => 1, 15 => 2, 16 => 1]));
+});
+
 it('renders every metrics widget by default', function () {
     $page = new MetricsPage;
 
