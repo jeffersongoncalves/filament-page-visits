@@ -54,6 +54,9 @@ presentation layer (a Resource, Pages, widgets) built on top of the core's `Page
     `page_visit_daily_stats` aggregate table so it stays accurate even after raw `page_visits` rows are pruned by
     `page-visits:aggregate-and-prune`. Auto-hides itself on older `laravel-page-visits` installs that don't have
     that table yet.
+  - `ResponseTimeTrendChart` — daily p50 / p95 / p99 response time in ms (last 90 days), read from the
+    `response_time_stats` column `laravel-page-visits` 1.3.0+ writes during `page-visits:aggregate-and-prune`.
+    Auto-hides itself on installs that haven't run that migration yet.
   - `DevicesChart`, `BrowsersChart`, `OperatingSystemsChart` — device / browser / OS breakdown.
   - `StatusCodesChart` — 2xx/3xx/4xx/5xx breakdown.
   - `RefererTypesChart` — direct / search / social / unknown breakdown.

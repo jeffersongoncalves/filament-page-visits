@@ -72,6 +72,7 @@ return [
         'hourly' => '時間別訪問数（過去 24 時間）',
         'traffic_trend' => 'トラフィック推移（過去 14 日間）',
         'long_term_trend' => '長期推移（過去 90 日間）',
+        'response_time_trend' => '応答時間（過去 90 日間、ms）',
         'devices' => 'デバイス',
         'browsers' => 'ブラウザ',
         'operating_systems' => 'オペレーティングシステム',
