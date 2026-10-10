@@ -72,6 +72,7 @@ return [
         'hourly' => 'Visite per ora (ultime 24 ore)',
         'traffic_trend' => 'Andamento del traffico (ultimi 14 giorni)',
         'long_term_trend' => 'Andamento a lungo termine (ultimi 90 giorni)',
+        'response_time_trend' => 'Tempo di risposta (ultimi 90 giorni, ms)',
         'devices' => 'Dispositivi',
         'browsers' => 'Browser',
         'operating_systems' => 'Sistemi operativi',

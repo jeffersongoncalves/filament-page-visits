@@ -72,6 +72,7 @@ return [
         'hourly' => 'Bezoeken per uur (laatste 24 uur)',
         'traffic_trend' => 'Verkeerstrend (laatste 14 dagen)',
         'long_term_trend' => 'Langetermijntrend (laatste 90 dagen)',
+        'response_time_trend' => 'Responstijd (laatste 90 dagen, ms)',
         'devices' => 'Apparaten',
         'browsers' => 'Browsers',
         'operating_systems' => 'Besturingssystemen',

@@ -72,6 +72,7 @@ return [
         'hourly' => 'Besuche pro Stunde (letzte 24 Std.)',
         'traffic_trend' => 'Traffic-Trend (letzte 14 Tage)',
         'long_term_trend' => 'Langzeittrend (letzte 90 Tage)',
+        'response_time_trend' => 'Antwortzeit (letzte 90 Tage, ms)',
         'devices' => 'Geräte',
         'browsers' => 'Browser',
         'operating_systems' => 'Betriebssysteme',
