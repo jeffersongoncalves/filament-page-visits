@@ -72,6 +72,7 @@ return [
         'hourly' => 'Saate göre ziyaretler (son 24 saat)',
         'traffic_trend' => 'Trafik eğilimi (son 14 gün)',
         'long_term_trend' => 'Uzun vadeli eğilim (son 90 gün)',
+        'response_time_trend' => 'Yanıt süresi (son 90 gün, ms)',
         'devices' => 'Cihazlar',
         'browsers' => 'Tarayıcılar',
         'operating_systems' => 'İşletim sistemleri',

@@ -93,8 +93,15 @@ abstract class TestCase extends Orchestra
             mkdir($tempPath, 0755, true);
         }
 
+        array_map(unlink(...), glob($tempPath.'/*.php'));
+
+        // Migrations run in filename order: prefix create_* stubs so they run
+        // before stubs altering those tables (e.g. add_response_time_stats_*).
         foreach (glob($stubsPath.'/*.php.stub') as $stub) {
-            copy($stub, $tempPath.'/'.basename(str_replace('.php.stub', '.php', $stub)));
+            $name = basename($stub, '.php.stub');
+            $prefix = str_starts_with($name, 'create_') ? '0_' : '1_';
+
+            copy($stub, $tempPath.'/'.$prefix.$name.'.php');
         }
 
         $this->loadMigrationsFrom($tempPath);
