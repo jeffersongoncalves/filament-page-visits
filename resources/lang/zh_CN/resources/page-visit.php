@@ -72,6 +72,7 @@ return [
         'hourly' => '按小时访问量（最近 24 小时）',
         'traffic_trend' => '流量趋势（最近 14 天）',
         'long_term_trend' => '长期趋势（最近 90 天）',
+        'response_time_trend' => '响应时间（最近 90 天，毫秒）',
         'devices' => '设备',
         'browsers' => '浏览器',
         'operating_systems' => '操作系统',

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use JeffersonGoncalves\Filament\PageVisits\FilamentPageVisitsPlugin;
 use JeffersonGoncalves\Filament\PageVisits\Pages\MetricsPage;
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource;
@@ -12,6 +12,7 @@ use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\H
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\LongTermTrendChart;
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\OperatingSystemsChart;
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\RefererTypesChart;
+use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\ResponseTimeTrendChart;
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\SecurityOverview;
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\StatsOverview;
 use JeffersonGoncalves\Filament\PageVisits\Resources\PageVisitResource\Widgets\StatusCodesChart;
@@ -84,6 +85,7 @@ it('renders the metrics widgets without polling', function () {
     livewire(HourlyChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
     livewire(TrafficTrendChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
     livewire(LongTermTrendChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
+    livewire(ResponseTimeTrendChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
     livewire(DevicesChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
     livewire(BrowsersChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
     livewire(OperatingSystemsChart::class)->assertSuccessful()->assertDontSee('wire:poll', escape: false);
@@ -137,6 +139,7 @@ it('renders every metrics widget by default', function () {
         HourlyChart::class,
         TrafficTrendChart::class,
         LongTermTrendChart::class,
+        ResponseTimeTrendChart::class,
         DevicesChart::class,
         BrowsersChart::class,
         OperatingSystemsChart::class,
@@ -150,11 +153,41 @@ it('renders every metrics widget by default', function () {
 });
 
 it('hides the long-term trend widget when page_visit_daily_stats does not exist', function () {
-    Schema::drop(config('page-visits.daily_stats_table', 'page_visit_daily_stats'));
+    // Point at a missing table rather than dropping it: Testbench rolls the
+    // package migrations back after each test and that needs the real table.
+    config()->set('page-visits.daily_stats_table', 'missing_daily_stats');
 
     $page = new MetricsPage;
 
     expect($page->getVisibleHeaderWidgets())->not->toContain(LongTermTrendChart::class);
+
+    config()->set('page-visits.daily_stats_table', 'page_visit_daily_stats');
+});
+
+it('charts daily response time percentiles, leaving gaps for days without stats', function () {
+    $this->travelTo('2026-09-24 15:30:00');
+
+    DB::table(config('page-visits.daily_stats_table', 'page_visit_daily_stats'))->insert([
+        ['date' => '2026-09-23', 'response_time_stats' => json_encode(['count' => 3, 'avg' => 40, 'min' => 10, 'max' => 90, 'p50' => 20, 'p95' => 80, 'p99' => 90])],
+        ['date' => '2026-09-22', 'response_time_stats' => null],
+    ]);
+
+    $datasets = (fn () => $this->getData())->call(new ResponseTimeTrendChart)['datasets'];
+
+    expect(array_column($datasets, 'label'))->toBe(['p50', 'p95', 'p99'])
+        ->and(array_slice($datasets[0]['data'], -3))->toBe([null, 20, null])
+        ->and(array_slice($datasets[1]['data'], -3))->toBe([null, 80, null])
+        ->and(array_slice($datasets[2]['data'], -3))->toBe([null, 90, null]);
+});
+
+it('hides the response time widget when response_time_stats does not exist', function () {
+    // Any existing table without the column stands in for a pre-1.3.0 install.
+    config()->set('page-visits.daily_stats_table', 'page_visits');
+
+    expect((new MetricsPage)->getVisibleHeaderWidgets())->not->toContain(ResponseTimeTrendChart::class)
+        ->toContain(LongTermTrendChart::class);
+
+    config()->set('page-visits.daily_stats_table', 'page_visit_daily_stats');
 });
 
 it('can disable individual metrics widgets via config', function () {
@@ -170,6 +203,7 @@ it('can disable individual metrics widgets via config', function () {
         HourlyChart::class,
         TrafficTrendChart::class,
         LongTermTrendChart::class,
+        ResponseTimeTrendChart::class,
         BrowsersChart::class,
         OperatingSystemsChart::class,
         StatusCodesChart::class,
