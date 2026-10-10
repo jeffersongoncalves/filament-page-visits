@@ -72,6 +72,7 @@ return [
         'hourly' => 'Soatlar boʻyicha tashriflar (oxirgi 24 soat)',
         'traffic_trend' => 'Trafik tendensiyasi (oxirgi 14 kun)',
         'long_term_trend' => 'Uzoq muddatli tendensiya (oxirgi 90 kun)',
+        'response_time_trend' => 'Javob vaqti (oxirgi 90 kun, ms)',
         'devices' => 'Qurilmalar',
         'browsers' => 'Brauzerlar',
         'operating_systems' => 'Operatsion tizimlar',
