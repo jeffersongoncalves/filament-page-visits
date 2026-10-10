@@ -19,6 +19,7 @@ return [
             'hourly_chart' => true,
             'traffic_trend' => true,
             'long_term_trend' => true,
+            'response_time_trend' => true,
             'devices_chart' => true,
             'browsers_chart' => true,
             'operating_systems_chart' => true,

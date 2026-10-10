@@ -72,6 +72,7 @@ return [
         'hourly' => 'Saatlara görə ziyarətlər (son 24 saat)',
         'traffic_trend' => 'Trafik trendi (son 14 gün)',
         'long_term_trend' => 'Uzunmüddətli trend (son 90 gün)',
+        'response_time_trend' => 'Cavab müddəti (son 90 gün, ms)',
         'devices' => 'Cihazlar',
         'browsers' => 'Brauzerlər',
         'operating_systems' => 'Əməliyyat sistemləri',
