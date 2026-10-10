@@ -87,7 +87,7 @@ abstract class TestCase extends Orchestra
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
 
         $stubsPath = __DIR__.'/../vendor/jeffersongoncalves/laravel-page-visits/database/migrations';
-        $tempPath = sys_get_temp_dir().'/filament-page-visits-migrations';
+        $tempPath = sys_get_temp_dir().'/filament-page-visits-migrations-'.getmypid();
 
         if (! is_dir($tempPath)) {
             mkdir($tempPath, 0755, true);
