@@ -18,12 +18,15 @@ use Illuminate\Support\ViewErrorBag;
 use JeffersonGoncalves\Filament\PageVisits\FilamentPageVisitsServiceProvider;
 use JeffersonGoncalves\Filament\PageVisits\Tests\Fixtures\TestPanelProvider;
 use JeffersonGoncalves\LaravelPageVisits\LaravelPageVisitsServiceProvider;
+use JeffersonGoncalves\PestPluginDatabaseMigrations\LoadsPackageMigrations;
 use Livewire\LivewireServiceProvider;
 use Livewire\Mechanisms\DataStore;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
 {
+    use LoadsPackageMigrations;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -85,25 +88,6 @@ abstract class TestCase extends Orchestra
     protected function defineDatabaseMigrations(): void
     {
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
-
-        $stubsPath = __DIR__.'/../vendor/jeffersongoncalves/laravel-page-visits/database/migrations';
-        $tempPath = sys_get_temp_dir().'/filament-page-visits-migrations-'.getmypid();
-
-        if (! is_dir($tempPath)) {
-            mkdir($tempPath, 0755, true);
-        }
-
-        array_map(unlink(...), glob($tempPath.'/*.php'));
-
-        // Migrations run in filename order: prefix create_* stubs so they run
-        // before stubs altering those tables (e.g. add_response_time_stats_*).
-        foreach (glob($stubsPath.'/*.php.stub') as $stub) {
-            $name = basename($stub, '.php.stub');
-            $prefix = str_starts_with($name, 'create_') ? '0_' : '1_';
-
-            copy($stub, $tempPath.'/'.$prefix.$name.'.php');
-        }
-
-        $this->loadMigrationsFrom($tempPath);
+        $this->loadPackageMigrations(LaravelPageVisitsServiceProvider::class);
     }
 }
