@@ -112,6 +112,24 @@ it('excludes bot traffic from top country stats', function () {
         ->assertDontSee('Bot-only Land');
 });
 
+it('computes overview stats with single-pass aggregates', function () {
+    $this->travelTo('2026-09-24 15:30:00');
+
+    PageVisitFactory::new()->create(['visited_at' => '2026-09-24 00:00:00', 'is_bot' => true, 'is_vpn' => true, 'is_proxy' => false, 'is_tor' => false, 'is_datacenter' => true]);
+    PageVisitFactory::new()->create(['visited_at' => '2026-09-24 23:59:59', 'is_bot' => false, 'is_vpn' => false, 'is_proxy' => true, 'is_tor' => false, 'is_datacenter' => true]);
+    PageVisitFactory::new()->create(['visited_at' => '2026-09-23 23:59:59', 'is_bot' => false, 'is_vpn' => false, 'is_proxy' => false, 'is_tor' => false, 'is_datacenter' => false]);
+    PageVisitFactory::new()->create(['visited_at' => '2026-09-25 00:00:00', 'is_bot' => false, 'is_vpn' => false, 'is_proxy' => false, 'is_tor' => false, 'is_datacenter' => false]);
+
+    $values = fn (string $widget): array => array_map(
+        fn ($stat) => $stat->getValue(),
+        (fn () => $this->getStats())->call(new $widget),
+    );
+
+    // total, today (range bounds: 00:00:00 inclusive, next midnight exclusive), bot %.
+    expect(array_slice($values(StatsOverview::class), 0, 3))->toBe([4, 2, '25%'])
+        ->and($values(SecurityOverview::class))->toBe(['25%', '25%', '0%', '50%']);
+});
+
 it('buckets traffic trend and hourly charts in the database', function () {
     $this->travelTo('2026-09-24 15:30:00');
 
