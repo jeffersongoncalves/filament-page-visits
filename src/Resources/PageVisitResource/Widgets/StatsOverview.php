@@ -12,9 +12,18 @@ class StatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $total = PageVisit::query()->count();
-        $today = PageVisit::query()->whereDate('visited_at', today())->count();
-        $bots = PageVisit::query()->where('is_bot', true)->count();
+        // One pass for total + bots; "today" as a range so the visited_at index is used.
+        $counts = PageVisit::query()
+            ->toBase()
+            ->selectRaw('count(*) as total')
+            ->selectRaw('count(case when is_bot then 1 end) as bots')
+            ->first();
+        $total = (int) $counts->total;
+        $bots = (int) $counts->bots;
+        $today = PageVisit::query()
+            ->where('visited_at', '>=', today())
+            ->where('visited_at', '<', today()->addDay())
+            ->count();
         $botPercentage = $total > 0 ? round($bots / $total * 100, 1) : 0.0;
 
         $topCountry = PageVisit::query()
