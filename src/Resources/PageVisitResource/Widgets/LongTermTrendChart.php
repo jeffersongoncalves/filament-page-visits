@@ -47,7 +47,8 @@ class LongTermTrendChart extends ChartWidget
         // count isn't written to the daily stats table yet, so read it live.
         $counts[today()->toDateString()] = PageVisit::query()
             ->where('is_bot', false)
-            ->whereDate('visited_at', today())
+            ->where('visited_at', '>=', today())
+            ->where('visited_at', '<', today()->addDay())
             ->count();
 
         return [
