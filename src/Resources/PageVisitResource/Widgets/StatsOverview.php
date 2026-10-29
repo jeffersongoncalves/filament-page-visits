@@ -16,7 +16,7 @@ class StatsOverview extends BaseWidget
         $counts = PageVisit::query()
             ->toBase()
             ->selectRaw('count(*) as total')
-            ->selectRaw('count(case when is_bot then 1 end) as bots')
+            ->selectRaw('count(case when is_bot = ? then 1 end) as bots', [true])
             ->first();
         $total = (int) $counts->total;
         $bots = (int) $counts->bots;
