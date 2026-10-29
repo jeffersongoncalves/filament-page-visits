@@ -16,10 +16,10 @@ class SecurityOverview extends BaseWidget
         $counts = PageVisit::query()
             ->toBase()
             ->selectRaw('count(*) as total')
-            ->selectRaw('count(case when is_vpn then 1 end) as vpn')
-            ->selectRaw('count(case when is_proxy then 1 end) as proxy')
-            ->selectRaw('count(case when is_tor then 1 end) as tor')
-            ->selectRaw('count(case when is_datacenter then 1 end) as datacenter')
+            ->selectRaw('count(case when is_vpn = ? then 1 end) as vpn', [true])
+            ->selectRaw('count(case when is_proxy = ? then 1 end) as proxy', [true])
+            ->selectRaw('count(case when is_tor = ? then 1 end) as tor', [true])
+            ->selectRaw('count(case when is_datacenter = ? then 1 end) as datacenter', [true])
             ->first();
 
         $total = (int) $counts->total;
