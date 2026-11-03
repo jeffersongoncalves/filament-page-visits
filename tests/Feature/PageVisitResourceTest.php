@@ -130,6 +130,25 @@ it('computes overview stats with single-pass aggregates', function () {
         ->and($values(SecurityOverview::class))->toBe(['25%', '25%', '0%', '50%']);
 });
 
+it('excludes crawler-farm user agents from visits today', function () {
+    $this->travelTo('2026-09-24 15:30:00');
+
+    $visit = fn (?string $ua, string $ip) => PageVisitFactory::new()->create(['user_agent_hash' => $ua, 'ip_hash' => $ip]);
+    foreach (['ip-1', 'ip-2', 'ip-3'] as $ip) {
+        $visit('farm-ua', $ip);
+    }
+    $visit('real-ua', 'ip-4');
+    $visit(null, 'ip-5');
+
+    $today = fn () => (fn () => $this->getStats())->call(new StatsOverview)[1]->getValue();
+
+    expect($today())->toBe(5);
+
+    config(['page-visits.farm_ua_ip_threshold' => 2]);
+
+    expect($today())->toBe(2);
+});
+
 it('buckets traffic trend and hourly charts in the database', function () {
     $this->travelTo('2026-09-24 15:30:00');
 
