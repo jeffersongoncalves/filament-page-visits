@@ -20,9 +20,25 @@ class StatsOverview extends BaseWidget
             ->first();
         $total = (int) $counts->total;
         $bots = (int) $counts->bots;
-        $today = PageVisit::query()
+        $todayQuery = fn () => PageVisit::query()
             ->where('visited_at', '>=', today())
-            ->where('visited_at', '<', today()->addDay())
+            ->where('visited_at', '<', today()->addDay());
+
+        // Same crawler-farm cut page-visits:aggregate-and-prune applies nightly:
+        // a UA seen from more than farm_ua_ip_threshold IPs today is not a visitor.
+        $threshold = config('page-visits.farm_ua_ip_threshold');
+        $farm = (! is_numeric($threshold) || (int) $threshold <= 0) ? collect() : $todayQuery()
+            ->whereNotNull('user_agent_hash')
+            ->whereNotNull('ip_hash')
+            ->groupBy('user_agent_hash')
+            ->havingRaw('count(distinct ip_hash) > ?', [(int) $threshold])
+            ->pluck('user_agent_hash');
+
+        $today = $todayQuery()
+            ->when($farm->isNotEmpty(), fn ($q) => $q->where(
+                // whereNotIn alone would drop null hashes (NULL NOT IN … is null).
+                fn ($q) => $q->whereNull('user_agent_hash')->orWhereNotIn('user_agent_hash', $farm)
+            ))
             ->count();
         $botPercentage = $total > 0 ? round($bots / $total * 100, 1) : 0.0;
 
