@@ -7,6 +7,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use JeffersonGoncalves\Filament\PageVisits\Support\Utils;
 use JeffersonGoncalves\LaravelPageVisits\Models\PageVisit;
 
 class TopCountries extends TableWidget
@@ -21,6 +22,7 @@ class TopCountries extends TableWidget
         $query = PageVisit::query()
             ->whereNotNull('country')
             ->where('is_bot', false)
+            ->tap(Utils::excludeFarms(...))
             ->select(['country', DB::raw('max(id) as id'), DB::raw('count(*) as visits_count')])
             ->groupBy('country')
             ->orderByDesc('visits_count')
