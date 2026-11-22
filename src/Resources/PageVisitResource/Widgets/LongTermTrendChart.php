@@ -44,11 +44,15 @@ class LongTermTrendChart extends ChartWidget
             ->pluck('visits_count', 'date');
 
         // page-visits:aggregate-and-prune folds "yesterday" in — today's
-        // count isn't written to the daily stats table yet, so read it live.
-        $counts[today()->toDateString()] = PageVisit::query()
+        // count isn't written to the daily stats table yet, so read it live,
+        // with the same crawler-farm cut the nightly aggregate applies.
+        $start = today();
+        $end = $start->copy()->addDay();
+        $counts[$start->toDateString()] = PageVisit::query()
+            ->excludingFarms($start, $end)
             ->where('is_bot', false)
-            ->where('visited_at', '>=', today())
-            ->where('visited_at', '<', today()->addDay())
+            ->where('visited_at', '>=', $start)
+            ->where('visited_at', '<', $end)
             ->count();
 
         return [
