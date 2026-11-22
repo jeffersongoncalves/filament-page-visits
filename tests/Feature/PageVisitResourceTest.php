@@ -154,6 +154,35 @@ it('reads bot percentage from the daily stats when store_bots is false', functio
         ->and($stats[2]->getValue())->toBe('75%');
 });
 
+it('counts days not aggregated yet live, without double counting aggregated ones', function () {
+    // Between midnight and the scheduled page-visits:aggregate-and-prune run.
+    $this->travelTo('2026-09-24 01:00:00');
+    config(['page-visits.farm_ua_ip_threshold' => 2]);
+
+    DB::table(config('page-visits.daily_stats_table', 'page_visit_daily_stats'))->insert([
+        ['date' => '2026-09-22', 'visits_count' => 10, 'bot_visits_count' => 10],
+    ]);
+
+    $visit = fn (string $at, array $attributes = []) => PageVisitFactory::new()->create(['visited_at' => $at, ...$attributes]);
+    // Already in the daily stats.
+    $visit('2026-09-22 12:00:00');
+    // Yesterday, not aggregated yet: 1 human, 3 farm rows (bots), 1 datacenter (neither).
+    $visit('2026-09-23 12:00:00', ['user_agent_hash' => 'real-ua', 'ip_hash' => 'ip-0']);
+    foreach (['ip-1', 'ip-2', 'ip-3'] as $ip) {
+        $visit('2026-09-23 13:00:00', ['user_agent_hash' => 'farm-ua', 'ip_hash' => $ip]);
+    }
+    $visit('2026-09-23 14:00:00', ['is_datacenter' => true]);
+    // Today: 1 human, 1 datacenter.
+    $visit('2026-09-24 00:30:00');
+    $visit('2026-09-24 00:40:00', ['is_datacenter' => true]);
+
+    $stats = (fn () => $this->getStats())->call(new StatsOverview);
+
+    // humans 10 + 1 + 1, bots 10 + 3 → 13 / 25.
+    expect($stats[0]->getValue())->toBe(12)
+        ->and($stats[2]->getValue())->toBe('52%');
+});
+
 it('ignores crawler farms in the trend point for today and top countries', function () {
     $this->travelTo('2026-09-24 15:30:00');
     config(['page-visits.farm_ua_ip_threshold' => 2]);
@@ -168,9 +197,11 @@ it('ignores crawler farms in the trend point for today and top countries', funct
     $trend = (fn () => $this->getData())->call(new LongTermTrendChart)['datasets'][0]['data'];
     $stats = (fn () => $this->getStats())->call(new StatsOverview);
 
+    // Total: today's real visit + the unaggregated 2026-09-20 row, which was
+    // not a farm on its own day (per-day cut, as the aggregate does).
     expect(end($trend))->toBe(1)
-        ->and($stats[0]->getValue())->toBe(1)
-        ->and($stats[2]->getValue())->toBe('75%')
+        ->and($stats[0]->getValue())->toBe(2)
+        ->and($stats[2]->getValue())->toBe('60%')
         ->and($stats[3]->getValue())->toBe('Real Visitor Land');
 
     livewire(TopCountries::class)
