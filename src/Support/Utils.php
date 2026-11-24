@@ -18,6 +18,21 @@ class Utils
     }
 
     /**
+     * Keeps the audience page-visits:aggregate-and-prune counts in
+     * visits_count and the daily breakdowns: no bots, no datacenter rows,
+     * no crawler farms.
+     *
+     * @param  Builder<PageVisit>  $query
+     */
+    public static function onlyHumans(Builder $query): void
+    {
+        $query
+            ->where('is_bot', false)
+            ->where('is_datacenter', false)
+            ->tap(self::excludeFarms(...));
+    }
+
+    /**
      * Drops rows whose user agent was a crawler farm (more than
      * farm_ua_ip_threshold distinct IPs) on any single day still in the raw
      * table — the per-day cut page-visits:aggregate-and-prune applies, so

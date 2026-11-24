@@ -77,8 +77,7 @@ class StatsOverview extends BaseWidget
 
         $topCountry = PageVisit::query()
             ->whereNotNull('country')
-            ->where('is_bot', false)
-            ->tap(Utils::excludeFarms(...))
+            ->tap(Utils::onlyHumans(...))
             ->selectRaw('country, count(*) as aggregate')
             ->groupBy('country')
             ->orderByDesc('aggregate')
