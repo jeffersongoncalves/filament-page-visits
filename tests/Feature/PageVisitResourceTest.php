@@ -209,6 +209,44 @@ it('ignores crawler farms in the trend point for today and top countries', funct
         ->assertDontSee('Farm Land');
 });
 
+it('lists only human visits in the top tables', function () {
+    $this->travelTo('2026-09-24 15:30:00');
+
+    $visit = fn (string $label, array $attributes = []) => PageVisitFactory::new()->create([
+        'path' => "/{$label}-row",
+        'referer_host' => "{$label}-row.test",
+        'country' => "{$label}-row land",
+        ...$attributes,
+    ]);
+
+    $visit('human', ['user_agent_hash' => 'real-ua', 'ip_hash' => 'ip-0']);
+    $visit('hashless', ['user_agent_hash' => null]);
+    $visit('bot', ['is_bot' => true]);
+    $visit('cloud', ['is_datacenter' => true]);
+    foreach (['ip-1', 'ip-2', 'ip-3'] as $ip) {
+        $visit('farm', ['user_agent_hash' => 'farm-ua', 'ip_hash' => $ip]);
+    }
+
+    $tables = [TopPages::class, TopReferrers::class, TopCountries::class];
+
+    // Threshold off: farm rows can't be told apart, bot and datacenter rows can.
+    config(['page-visits.farm_ua_ip_threshold' => null]);
+
+    foreach ($tables as $widget) {
+        livewire($widget)
+            ->assertSee(['human-row', 'hashless-row', 'farm-row'])
+            ->assertDontSee(['bot-row', 'cloud-row']);
+    }
+
+    config(['page-visits.farm_ua_ip_threshold' => 2]);
+
+    foreach ($tables as $widget) {
+        livewire($widget)
+            ->assertSee(['human-row', 'hashless-row'])
+            ->assertDontSee(['bot-row', 'cloud-row', 'farm-row']);
+    }
+});
+
 it('excludes crawler-farm user agents from visits today', function () {
     $this->travelTo('2026-09-24 15:30:00');
 
