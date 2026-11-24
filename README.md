@@ -60,7 +60,9 @@ presentation layer (a Resource, Pages, widgets) built on top of the core's `Page
   - `DevicesChart`, `BrowsersChart`, `OperatingSystemsChart` — device / browser / OS breakdown.
   - `StatusCodesChart` — 2xx/3xx/4xx/5xx breakdown.
   - `RefererTypesChart` — direct / search / social / unknown breakdown.
-  - `TopPages`, `TopReferrers`, `TopCountries`, `TopAsn` — top-10 tables (ASN/ISP included).
+  - `TopPages`, `TopReferrers`, `TopCountries` — top-10 tables over human visits: bots, datacenter visits and
+    crawler farms (`farm_ua_ip_threshold`) are left out, like the daily stats.
+  - `TopAsn` — top-10 ASNs/ISPs over every stored visit, so crawler networks stay visible.
 - pt_BR and en translations.
 
 Publish `config/filament-page-visits.php` to change the metrics page slug or turn individual widgets off — useful
